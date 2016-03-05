@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.ui.newWizards">
+      <!-- @generated MetaERP -->
+      <category
+            id="org.eclipse.emf.ecore.Wizard.category.ID"
+            name="%_UI_Wizard_category"/>
+      <wizard
+            id="metaerp.presentation.MetaerpModelWizardID"
+            name="%_UI_MetaerpModelWizard_label"
+            class="metaerp.presentation.MetaerpModelWizard"
+            category="org.eclipse.emf.ecore.Wizard.category.ID"
+            icon="icons/full/obj16/MetaerpModelFile.gif">
+         <description>%_UI_MetaerpModelWizard_description</description>
+         <selection class="org.eclipse.core.resources.IResource"/>
+      </wizard>
+   </extension>
+
+   <extension point="org.eclipse.ui.editors">
+      <!-- @generated MetaERP -->
+      <editor
+            id="metaerp.presentation.MetaerpEditorID"
+            name="%_UI_MetaerpEditor_label"
+            icon="icons/full/obj16/MetaerpModelFile.gif"
+            extensions="metaerp"
+            class="metaerp.presentation.MetaerpEditor"
+            contributorClass="metaerp.presentation.MetaerpActionBarContributor">
+      </editor>
+   </extension>
+
+</plugin>
