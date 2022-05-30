@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/MetaERP/src" modelPluginID="MetaERP" modelName="MetaERP"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="7.0" copyrightFields="false">
+  <foreignModel>MetaERP.ecore</foreignModel>
+  <genPackages prefix="Metaerp" disposableProviderFactory="true" ecorePackage="MetaERP.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="MetaERP.ecore#//BehaviorTypes">
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//BehaviorTypes/subtract"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//BehaviorTypes/add"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//BehaviorTypes/doNothing"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="MetaERP.ecore#//RuleTypes">
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/bigger"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/smaller"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/equal"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/biggerOrEqual"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/smallerOrEqual"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//RuleTypes/noRule"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="MetaERP.ecore#//InputDefaultTypes">
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/varchar"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/text"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/int"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/decimal"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/password"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/date"/>
+      <genEnumLiterals ecoreEnumLiteral="MetaERP.ecore#//InputDefaultTypes/datetime"/>
+    </genEnums>
+    <genClasses ecoreClass="MetaERP.ecore#//Entity">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Entity/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MetaERP.ecore#//Entity/attributes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MetaERP.ecore#//Entity/subEntity"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Entity/cardinality"/>
+    </genClasses>
+    <genClasses ecoreClass="MetaERP.ecore#//Attribute">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/label"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/createble"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/editable"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference MetaERP.ecore#//Attribute/customType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/required"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//Attribute/listable"/>
+    </genClasses>
+    <genClasses ecoreClass="MetaERP.ecore#//ERP">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MetaERP.ecore#//ERP/entities"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MetaERP.ecore#//ERP/types"/>
+    </genClasses>
+    <genClasses ecoreClass="MetaERP.ecore#//DataType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//DataType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//DataType/regex"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//DataType/helperText"/>
+    </genClasses>
+    <genClasses ecoreClass="MetaERP.ecore#//EntityRelated">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference MetaERP.ecore#//EntityRelated/related"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MetaERP.ecore#//EntityRelated/attributesRelated"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//EntityRelated/label"/>
+    </genClasses>
+    <genClasses ecoreClass="MetaERP.ecore#//AttributeRelated">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//AttributeRelated/main"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//AttributeRelated/onCreate"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//AttributeRelated/onDelete"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//AttributeRelated/rule"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference MetaERP.ecore#//AttributeRelated/related"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MetaERP.ecore#//AttributeRelated/autocomplete"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

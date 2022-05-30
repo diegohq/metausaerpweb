@@ -1,0 +1,65 @@
+<%@ jet package="generator.sql" 
+class="Create" 
+imports="metaerp.* utils.* utils.metaerp.*"
+%>
+
+<% 
+EntityHelper entityHelper = (EntityHelper) argument;
+
+Entity entity = entityHelper.getEntity();
+EntityRelated entityRelated = entity instanceof EntityRelated ? (EntityRelated) entity : null;
+
+Entity parent = entityHelper.getParent();
+
+%>
+
+CREATE TABLE IF NOT EXISTS <%= StringHelper.name2dbName(entity.getName()) %> (
+
+id INT(11) NOT NULL AUTO_INCREMENT,
+
+<% for(Attribute attribute : entity.getAttributes()) { 
+String defaultValue = InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getDefaultValue();
+
+if(defaultValue != "") {
+	defaultValue = " DEFAULT '" + defaultValue + "'";
+}
+
+%>
+
+<%= StringHelper.name2db(attribute.getName()) %> <%= InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getSqlType() %> NULL<%= defaultValue %>,
+
+<% } %>
+
+<% if(entityRelated != null) { %>
+
+<%= StringHelper.name2db(entityRelated.getRelated().getName()) %>_id INT(11),
+KEY <%= StringHelper.name2db(entityRelated.getRelated().getName()) %>_id (<%= StringHelper.name2db(entityRelated.getRelated().getName()) %>_id),
+
+<% } %>
+
+<% if(parent != null) { %>
+
+<%= StringHelper.name2db(parent.getName()) %>_id INT(11),
+KEY <%= StringHelper.name2db(parent.getName()) %>_id (<%= StringHelper.name2db(parent.getName()) %>_id),
+
+<% } %>
+
+active TINYINT(1) DEFAULT 1,
+
+PRIMARY KEY(id)
+
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+<% if(entityRelated != null) { %>
+
+ALTER TABLE <%= StringHelper.name2dbName(entity.getName()) %>
+ADD CONSTRAINT `<%= StringHelper.name2db(entityRelated.getRelated().getName()) %>_<%= StringHelper.name2db(entity.getName()) %>_id_ibfk` FOREIGN KEY (<%= StringHelper.name2db(entityRelated.getRelated().getName()) %>_id) REFERENCES <%= StringHelper.name2dbName(entityRelated.getRelated().getName()) %> (id);
+
+<% } %>
+
+<% if(parent != null) { %>
+
+ALTER TABLE <%= StringHelper.name2dbName(entity.getName()) %>
+ADD CONSTRAINT `<%= StringHelper.name2db(parent.getName()) %>_id_ibfk` FOREIGN KEY (<%= StringHelper.name2db(parent.getName()) %>_id) REFERENCES <%= StringHelper.name2dbName(parent.getName()) %> (id);
+
+<% } %>

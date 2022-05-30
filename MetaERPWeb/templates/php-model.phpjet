@@ -1,0 +1,126 @@
+<%@ jet package="generator.php" 
+class="Model" 
+imports="metaerp.* utils.* utils.metaerp.*"
+%>
+
+<% 
+
+EntityHelper entityHelper = (EntityHelper) argument;
+Entity entity = entityHelper.getEntity();
+Entity parent = entityHelper.getParent();
+EntityRelated entityRelated = entity instanceof EntityRelated ? (EntityRelated) entity : null;
+
+String entityName = StringHelper.name2system(entity.getName());
+
+%>
+
+<?php
+
+class <%= entityName %> extends AppModel {
+
+	<% if(entity.getSubEntity().size() > 0) { %>
+	
+	public $hasMany = array(
+		<% for(Entity subEntity : entity.getSubEntity()) { %>
+		'<%= StringHelper.name2system(subEntity.getName()) %>',
+		<% } %>
+	);
+	
+	<% } %>
+		
+	<% if(entityRelated != null || parent != null) { %>
+	
+	public $belongsTo = array(
+		<% if(entityRelated != null) { %>
+		'<%= StringHelper.name2system(entityRelated.getRelated().getName()) %>',
+		<% } %>
+		<% if(parent != null) { %>
+		'<%= StringHelper.name2system(parent.getName()) %>',
+		<% } %>
+	);
+	
+	<% } %>
+	
+
+	function beforeFind($queryData) {
+
+        $queryData['conditions']['<%= entityName %>.active'] = 1;
+
+        return $queryData;
+        
+    }
+
+	function beforeSave($options = array()) {
+	
+		App::import('Vendor', 'NumberHelper');
+	
+		<% for(Attribute attribute : entity.getAttributes()) { %>
+		<% if(attribute.getType() == InputDefaultTypes.DECIMAL || attribute.getType() == InputDefaultTypes.INT) { %>
+		
+		<% String attributeName = StringHelper.name2db(attribute.getName()); %>
+		
+		if(isset($this->data['<%= entityName %>']['<%= attributeName %>'])) {
+			$this->data['<%= entityName %>']['<%= attributeName %>'] = NumberHelper::numberTreatment($this->data['<%= entityName %>']['<%= attributeName %>']);
+		}
+		 
+		<% } %>
+		<% } %>
+	
+	
+		return true;
+	
+	}
+	
+	function checkRule($id, $attribute, $rule, $value) {
+	
+		$data = $this->findById($id);
+		
+		if(!isset($data['<%= entityName %>'][$attribute])) {
+			return false;
+		}
+		
+		App::import('Vendor', 'NumberHelper');
+		
+		if($rule == 'bigger') {
+			return $data['<%= entityName %>'][$attribute] < NumberHelper::numberTreatment($value);
+		} else if($rule == 'biggerOrEqual') {
+			return $data['<%= entityName %>'][$attribute] <= NumberHelper::numberTreatment($value);
+		} else if($rule == 'equal') {
+			return $data['<%= entityName %>'][$attribute] == NumberHelper::numberTreatment($value);
+		} else if($rule == 'smaller') {
+			return $data['<%= entityName %>'][$attribute] > NumberHelper::numberTreatment($value);
+		} else if($rule == 'smallerOrEqual') {
+			return $data['<%= entityName %>'][$attribute] >= NumberHelper::numberTreatment($value);
+		} else if($rule == 'noRule') {
+			return true;
+		}
+		
+		return false;
+	
+	}
+	
+	function executeBehavior($id, $attribute, $behavior, $value) {
+		
+		$data = $this->findById($id);
+		
+		if(!isset($data['<%= entityName %>'][$attribute])) {
+			return false;
+		}
+		
+		App::import('Vendor', 'NumberHelper');
+		
+		if($behavior == 'add') {
+			$data['<%= entityName %>'][$attribute] += NumberHelper::numberTreatment($value);
+		} else if($behavior == 'subtract') {
+			$data['<%= entityName %>'][$attribute] -= NumberHelper::numberTreatment($value);
+		} else if($behavior == 'doNothing') {
+			return true;
+		}
+				
+		return $this->save($data);
+		
+	}
+	
+}
+
+?>

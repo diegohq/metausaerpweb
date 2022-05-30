@@ -1,0 +1,21 @@
+<%@ jet package="generator.html" 
+class="Flash" 
+imports="configuration.FlashLoader"
+%>
+
+<% FlashLoader flash = (FlashLoader) argument; %>
+
+<?php
+
+$class = str_replace('success', '<%= flash.getSucessClass() %>', $class);
+$class = str_replace('error', '<%= flash.getErrorClass() %>', $class);
+$class = str_replace('info', '<%= flash.getInfoClass() %>', $class);
+
+?>
+
+{BEFORE_FLASH}
+        <div class="<?php echo $class ?>">
+            <?php echo (isset($message)? $message : 'Something happen, please contact us' ) ?>
+            {AFTER_FLASH_MESSAGE}
+        </div>
+{AFTER_FLASH}

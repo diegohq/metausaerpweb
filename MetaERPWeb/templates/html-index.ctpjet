@@ -1,0 +1,62 @@
+<%@ jet package="generator.html" 
+class="Index" 
+imports="metaerp.* utils.*"
+%>
+
+<% Entity entity = (Entity) argument; %>
+
+<% String modelName = StringHelper.name2system(entity.getName()); %>
+
+{BEFORE_ALL_CONTENT_PAGES}
+
+<?php echo $this->Session->flash(); ?>
+
+{BEFORE_TITLE}
+<%= entity.getName() %>
+{AFTER_TITLE}
+
+{BEFORE_THIS_CONTENT_PAGE}
+
+<a href="/<%= StringHelper.name2systemPlural(entity.getName()).toLowerCase() %>/create"{CREATE_BUTTON_EXTRA}>Add new <%= entity.getName().toLowerCase() %></a>
+
+{BEFORE_LISTING_TABLE}
+<table{LISTING_TABLE_EXTRA}>
+
+	<thead>
+		<tr>
+			<% for(Attribute attribute : entity.getAttributes()) { %>
+			<% if(attribute.isListable()) { %>
+			<th><%= attribute.getLabel() %></th>
+			<% } %>
+			<% } %>
+			<th>Options</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<?php foreach ($rows as $row) { ?>
+        <tr>
+        	<% for(Attribute attribute : entity.getAttributes()) { %>
+			<% if(attribute.isListable()) { %>
+			<td><?= $row['<%= modelName %>']['<%= StringHelper.name2db(attribute.getName()) %>'] ?></td>
+			<% } %>
+			<% } %>			
+            <td>
+            	<a href="/<%= StringHelper.name2systemPlural(entity.getName()).toLowerCase() %>/edit/<?= $row['<%= modelName %>']['id'] ?>">Edit</a>
+            	 | 
+            	<a href="#" onclick="confirmDelete('/<%= StringHelper.name2systemPlural(entity.getName()).toLowerCase() %>/delete/<?= $row['<%= modelName %>']['id'] ?>'); return false;">Delete</a> 
+            </td>
+		</tr>
+		<?php } ?>
+	</tbody>
+
+</table>
+{AFTER_LISTING_TABLE}
+
+{AFTER_THIS_CONTENT_PAGE}
+
+<div style="display: none" id="confirm-delete" title="Please, confirm">
+	Are you sure you want to delete this item?
+</div>
+
+{AFTER_ALL_CONTENT_PAGES}

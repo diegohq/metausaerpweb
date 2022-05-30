@@ -1,0 +1,14 @@
+<%@ jet package="generator.html" 
+class="Menu" 
+imports="metaerp.* java.util.List utils.*"
+%>
+
+<% List<Entity> entities = (List<Entity>) argument; %>
+
+<ul{UL_MENU_EXTRA}>
+
+	<% for(Entity entity : entities) { %>
+	<li{LI_MENU_EXTRA}><a href="/<%= StringHelper.name2systemPlural(entity.getName()).toLowerCase() %>/">{BEFORE_MENU_ITEM}<%= entity.getName() %>{AFTER_MENU_ITEM}</a></li>
+	<% } %>
+
+</ul>

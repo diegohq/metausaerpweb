@@ -1,0 +1,168 @@
+<%@ jet package="generator.html" 
+class="EditBox" 
+imports="metaerp.* utils.* java.util.List"
+%>
+
+<%
+
+SubEntityN subEntityN = null;
+Entity entity = null;
+
+String entityRelatedClass = "0";
+
+if(argument instanceof SubEntityN) {
+	subEntityN = (SubEntityN) argument;
+	entity = subEntityN.getSubEntity();
+	
+	if(subEntityN.isModel()) {
+		entityRelatedClass = "{CURRENT_CLASS}";
+	} else {
+		entityRelatedClass = subEntityN.getCurrentN();
+	}
+	
+} else {
+	entity = (Entity) argument;
+}
+
+EntityRelated entityRelated = null;
+
+if(entity instanceof EntityRelated) {
+entityRelated = (EntityRelated) entity;
+}
+
+List<Attribute>	attributes = entity.getAttributes();
+String entityName = StringHelper.name2system(entity.getName());
+
+String attributeInputNamePrefix = "";
+String attributeValuePrefix = "\'\'";
+
+if(entityRelated == null) {
+	attributeInputNamePrefix = "data[" + entityName + "]";
+	attributeValuePrefix = "$data['" + entityName + "']";
+} else {
+	attributeInputNamePrefix = "data[" + entityName + "][" + entityRelatedClass + "]";
+	if(entityRelatedClass != "{CURRENT_CLASS}") {
+		attributeValuePrefix = "$data['" + entityName + "'][" + entityRelatedClass + "]";
+	}
+}
+
+if(subEntityN != null && subEntityN.isModel()) { %>
+
+<div style="display: none;" data-metaerp-subentity-container="<%= StringHelper.name2systemPlural(entityRelated.getRelated().getName()) %>">
+
+<%
+
+} else if(subEntityN != null && subEntityN.isRuntimeEdit()) { %>
+
+<?php foreach($data['<%= entityName %>'] as $key => $entityEdit) { ?>
+
+<% 
+
+entityRelatedClass = "<?php echo $key; ?>";
+
+attributeInputNamePrefix = "data[" + entityName + "][<?php echo $key; ?>]";
+attributeValuePrefix = "$data['" + entityName + "'][$key]";
+
+} %>
+
+<% if(subEntityN != null && subEntityN.isRuntimeEdit()) { %>
+<div data-metaerp-clone="<%= StringHelper.name2systemPlural(entityRelated.getRelated().getName()) %><%= entityRelatedClass %>">
+<% } %>
+	
+
+<% if(attributeInputNamePrefix != "" && !(subEntityN != null && subEntityN.isModel())) { %>
+<input type="hidden" name="<%= attributeInputNamePrefix %>[id]" value="<?php echo <%= attributeValuePrefix %>['id']; ?>" />
+<% } %>
+
+	{OPEN_BOX}
+	
+	<% for(Attribute attribute : attributes) {
+		
+		if(attribute.isEditable()) {
+		
+		String attributeName = StringHelper.name2db(attribute.getName());
+		String attributeTag = InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getHtmlTag();
+		String attributeType = InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getHtmlType();
+		boolean attributeTagClose = InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).isHtmlTagClose();
+		%>
+		
+			{BEFORE_LABEL_TAG}
+			<label for="<%= attributeName %>"{LABEL_TAG_EXTRA}>
+				<%= attribute.getLabel() %><% if(attribute.isRequired()) { %>*<% } %>
+			</label>
+			{AFTER_LABEL_TAG}
+			{BEFORE_INPUT_TAG}
+			<%
+			boolean mainAttributeRelated = false;
+			String attributeRelatedString = "";
+			if(attribute instanceof AttributeRelated) { 
+				AttributeRelated attributeRelated = (AttributeRelated) attribute;
+				mainAttributeRelated = attributeRelated.isMain();
+				
+				attributeRelatedString += "data-metaerp-entity=\"" + StringHelper.name2systemPlural(entityRelated.getRelated().getName()) + "\" data-metaerp-class=\"" + entityRelatedClass + "\" data-metaerp-attribute=\"" + StringHelper.name2db(attributeRelated.getRelated().getName()) + "\" data-metaerp-main=\"" + attributeRelated.isMain() + "\" data-metaerp-autocomplete=\"" + attributeRelated.isAutocomplete() + "\"";
+				
+				if(attributeRelated.getRule() != RuleTypes.NO_RULE) {
+					attributeRelatedString += " data-metaerp-rule=\""+ attributeRelated.getRule().getLiteral() +"\"";
+				}
+				
+			}
+			
+			String inputAttributes = "";
+			
+			if(!mainAttributeRelated) {
+				inputAttributes = "type=\"" + attributeType + "\" " + InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getExtra() + "{INPUT_TAG_EXTRA}";
+				
+				if(attribute.isRequired()) { 
+					inputAttributes += " data-metaerp-required=\"true\"";
+				}
+				
+			} else {
+				inputAttributes = "type=\"text\"";
+			}
+			
+			String attributeInputName = "";
+			String attributeValue = "\'\'";
+			attributeInputName = attributeInputNamePrefix + "[" + attributeName + "]";
+			if(entityRelated == null) {
+				attributeValue = attributeValuePrefix + "['" + attributeName + "']";
+			} else if(entityRelatedClass != "{CURRENT_CLASS}") {
+				attributeValue = attributeValuePrefix + "['" + attributeName + "']";
+			}
+			
+			%>
+		
+
+			<<%= attributeTag %> name="<%= attributeInputName %>" id="<%= attributeName  + entityRelatedClass %>"<% if (!attributeTagClose) { %> value="<?php echo <%= attributeValue %>; ?>"<% } %> <%= inputAttributes %><%= attributeRelatedString %><% if (!attributeTagClose) { %> /<% } %>><% if (attributeTagClose) { %><?php echo <%= attributeValue %>; ?></<%= attributeTag %>><% } %>
+			
+			{AFTER_INPUT_TAG}
+			
+			{BEFORE_HELP_TEXT}
+			<%= InputDefaultTypesHelper.getByInputDefaultTypesValue(attribute.getType().getValue()).getHelpText() %>
+			{AFTER_HELP_TEXT}
+			
+		<% } %>
+	<% }
+	
+	if(subEntityN != null && (subEntityN.isModel() || subEntityN.isRuntimeEdit())) { %>
+
+	<a href="#" onclick="removeSubEntity('<%= StringHelper.name2systemPlural(entityRelated.getRelated().getName()) %><%= entityRelatedClass %>'); return false;">Remove</a>
+
+	<% } %>
+	
+	<input type="hidden" name="<%= attributeInputNamePrefix %>[active]" value="1" />
+	
+	{CLOSE_BOX}
+	
+<% if(subEntityN != null && subEntityN.isRuntimeEdit()) { %>
+</div>
+<% } %>
+	
+<% if(subEntityN != null && subEntityN.isModel()) { %>
+
+</div>
+
+<% } else if(subEntityN != null && subEntityN.isRuntimeEdit()) { %>
+
+<?php } ?>
+	
+<% } %>

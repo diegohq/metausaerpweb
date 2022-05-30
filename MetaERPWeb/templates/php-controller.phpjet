@@ -1,0 +1,366 @@
+<%@ jet package="generator.php" 
+class="Controller" 
+imports="metaerp.* utils.*"
+%>
+
+<% Entity entity = (Entity) argument;
+
+String modelName = StringHelper.name2system(entity.getName()); %>
+
+<?php
+
+class <%= StringHelper.name2controller(entity.getName()) %> extends AppController {
+
+	public function index() {
+	
+		$this->set('rows', $this-><%= modelName %>->find('all'));
+	
+	}
+
+	public function create($internal = false) {
+	
+		if($this->request->is('post')) {
+		
+			// validate rules
+			<% for(Entity subEntity : entity.getSubEntity()) {
+				if(subEntity instanceof EntityRelated) {
+					EntityRelated entityRelated = (EntityRelated) subEntity;
+					String modelRelated = "";
+					String quantity = "";
+					String attributeName = "";
+					String rule = "";
+					String main = "";
+					for(Attribute attribute : entityRelated.getAttributes()) {
+						if(attribute instanceof AttributeRelated) {
+							AttributeRelated attributeRelated = (AttributeRelated) attribute;
+							
+							if(attributeRelated.getRule() != RuleTypes.NO_RULE) {
+								modelRelated = StringHelper.name2system(entityRelated.getRelated().getName());
+								quantity = StringHelper.name2db(attributeRelated.getName());
+								attributeName = StringHelper.name2db(attributeRelated.getRelated().getName());
+								rule = attributeRelated.getRule().getLiteral();
+							}
+							
+							if(attributeRelated.isMain()) {
+								main = StringHelper.name2db(attributeRelated.getName());
+							}
+							
+						}
+					}
+					
+					if(modelRelated != "" && main != "") { %>
+						$this->loadModel('<%= modelRelated %>');
+						
+						$keys = array_keys($this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>']);
+						
+						foreach($keys as $i) {
+							$ruleCheck = $this-><%= modelRelated %>->checkRule($this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= main %>'], '<%= attributeName %>', '<%= rule %>', $this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= quantity %>']);
+							
+							if(!$ruleCheck) {
+							
+								$errorMessage = 'Rule check failed';
+							
+								if($internal) {
+									return array(
+										'success' => false,
+										'error' => $errorMessage
+									);
+								}
+							
+								$this->Session->setFlash($errorMessage, 'flash_custom', array('class' => 'error'));
+								$this->redirect(array('action' => 'create'));
+								
+							}
+							
+						}
+						
+					<% }
+					
+					
+				}
+			} %>
+		
+			// execute the behavior
+			<% for(Entity subEntity : entity.getSubEntity()) {
+				if(subEntity instanceof EntityRelated) {
+					EntityRelated entityRelated = (EntityRelated) subEntity;
+					String modelRelated = "";
+					String quantity = "";
+					String attributeName = "";
+					String behavior = "";
+					String main = "";
+					for(Attribute attribute : entityRelated.getAttributes()) {
+						if(attribute instanceof AttributeRelated) {
+							AttributeRelated attributeRelated = (AttributeRelated) attribute;
+							
+							if(attributeRelated.getOnCreate() != BehaviorTypes.DO_NOTHING) {
+								modelRelated = StringHelper.name2system(entityRelated.getRelated().getName());
+								quantity = StringHelper.name2db(attributeRelated.getName());
+								attributeName = StringHelper.name2db(attributeRelated.getRelated().getName());
+								behavior = attributeRelated.getOnCreate().getLiteral();
+							}
+							
+							if(attributeRelated.isMain()) {
+								main = StringHelper.name2db(attributeRelated.getName());
+							}
+							
+						}
+					}
+					
+					if(modelRelated != "" && main != "") { %>
+						$this->loadModel('<%= modelRelated %>');
+						
+						$keys = array_keys($this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>']);
+						
+						foreach($keys as $i) {
+							$behaviorCheck = $this-><%= modelRelated %>->executeBehavior($this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= main %>'], '<%= attributeName %>', '<%= behavior %>', $this->request->data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= quantity %>']);
+							
+							if(!$behaviorCheck) {
+							
+								$errorMessage = 'Relation update failed, please check your data: it may be wrong';
+							
+								if($internal) {
+									return array(
+										'success' => false,
+										'error' => $errorMessage
+									);
+								}
+							
+							
+								$this->Session->setFlash($errorMessage, 'flash_custom', array('class' => 'error'));
+								$this->redirect(array('action' => 'create'));
+							}
+							
+						}
+						
+					<% }
+					
+					
+				}
+			} %>
+		
+			$this-><%= modelName %>->create();
+			
+			if($this-><%= modelName %>->saveAll($this->request->data)) {
+			
+				if($internal) {
+					return array(
+					'success' => true
+					);
+				}
+			
+				$this->Session->setFlash('Data successfully saved', 'flash_custom', array('class' => 'success'));
+				$this->redirect(array('action' => 'index'));
+			} else {
+				
+				$errorMessage = 'Something happened, please try again';
+			
+				if($internal) {
+					return array(
+					'success' => false,
+					'error' => $errorMessage
+					);
+				}
+			
+				$this->Session->setFlash(errorMessage, 'flash_custom', array('class' => 'error'));
+				$this->redirect(array('action' => 'create'));
+				
+			}
+		
+		}
+	
+	}
+	
+	public function edit($id) {
+	
+		if($id == null) {
+            $this->Session->setFlash('No id informed', 'default', array('class' => 'error'));
+            $this->redirect(array('action' => 'index'));
+            exit();
+        }
+	
+		if($this->request->is('post')) {
+		
+			if(!$this->delete($id, true)) {
+				$this->Session->setFlash('Something happen, please check if the dependencies are ok and try again', 'flash_custom', array('class' => 'success'));
+				$this->redirect(array('action' => 'index'));
+			}
+			
+			$saveReturn = $this->create(true);
+			
+			if($saveReturn['success']) {
+				$this->Session->setFlash('Data successfully edited', 'flash_custom', array('class' => 'success'));
+				$this->redirect(array('action' => 'index'));
+			} else {
+				$this->Session->setFlash($saveReturn['error'], 'flash_custom', array('class' => 'error'));
+				$this->redirect(array('action' => 'create'));
+			}
+		
+		} else {
+			$this->set('data', $this-><%= modelName %>->findById($id));	
+		}
+	
+	
+	}
+	
+	public function delete($id, $internal = false) {
+	
+		if($id == null) {
+            $this->Session->setFlash('No id informed', 'default', array('class' => 'error'));
+            $this->redirect(array('action' => 'index'));
+            exit();
+        }
+        
+        $data = $this-><%= modelName %>->findById($id);
+        
+        if(count($data) == 0) {
+        	$this->Session->setFlash('This register does not exist', 'default', array('class' => 'error'));
+            $this->redirect(array('action' => 'index'));
+            exit();
+        }
+        
+        $data['<%= modelName %>']['active'] = 0;
+        
+        
+        // execute the behavior
+			<% for(Entity subEntity : entity.getSubEntity()) {
+				if(subEntity instanceof EntityRelated) {
+					EntityRelated entityRelated = (EntityRelated) subEntity;
+					String modelRelated = "";
+					String quantity = "";
+					String attributeName = "";
+					String behavior = "";
+					String main = "";
+					for(Attribute attribute : entityRelated.getAttributes()) {
+						if(attribute instanceof AttributeRelated) {
+							AttributeRelated attributeRelated = (AttributeRelated) attribute;
+							
+							if(attributeRelated.getOnDelete() != BehaviorTypes.DO_NOTHING) {
+								modelRelated = StringHelper.name2system(entityRelated.getRelated().getName());
+								quantity = StringHelper.name2db(attributeRelated.getName());
+								attributeName = StringHelper.name2db(attributeRelated.getRelated().getName());
+								behavior = attributeRelated.getOnDelete().getLiteral();
+							}
+							
+							if(attributeRelated.isMain()) {
+								main = StringHelper.name2db(attributeRelated.getName());
+							}
+							
+						}
+					}
+					
+					if(modelRelated != "" && main != "") { %>
+						$this->loadModel('<%= modelRelated %>');
+						
+						$executeCount = count($data['<%= StringHelper.name2system(entityRelated.getName()) %>']);
+						
+						for($i = 0 ; $i < $executeCount ; $i++) {
+							$this-><%= modelRelated %>->executeBehavior($data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= main %>'], '<%= attributeName %>', '<%= behavior %>', $data['<%= StringHelper.name2system(entityRelated.getName()) %>'][$i]['<%= quantity %>']);
+						}
+						
+					<% }
+					
+					
+				}
+			} %>
+        
+        if($this-><%= modelName %>->save($data)) {
+        
+        	if($internal) {
+        		return true;
+        	}
+        
+			$this->Session->setFlash('Data successfully deleted', 'flash_custom', array('class' => 'success'));
+			
+		} else {
+		
+			if($internal) {
+				return false;
+			}
+		
+			$this->Session->setFlash('Something happened, please try again', 'flash_custom', array('class' => 'error'));
+			
+		}
+		
+		$this->redirect(array('action' => 'index'));
+        
+	}
+	
+	public function listSelect2() {
+	
+		$this->autoRender = false;
+		
+		if(isset($this->request->data['id'])) {
+		
+			$searchField = $this->request->data['searchField'];
+			$results = $this-><%= modelName %>->find('all', array(
+				'conditions' => array(
+					'id =' => $this->request->data['id']
+				)
+			));
+		
+		} else {
+		
+			$term = $this->request->query['term'];
+			$searchField = $this->request->query['searchField'];
+			
+			$results = $this-><%= modelName %>->find('all', array(
+				'conditions' => array(
+					$searchField .' LIKE' => '%'. $term .'%',
+				)
+			));
+			
+		}
+					
+		$select2Format = array();
+        foreach($results as $key => $result) {
+            $select2Format[$key]['id'] = $result['<%= modelName %>']['id'];
+            $select2Format[$key]['text'] = $result['<%= modelName %>'][$searchField];
+        }
+		
+		echo json_encode($select2Format);
+	
+	}
+	
+	public function detailJson() {
+	
+		$this->autoRender = false;
+	
+		$id = $this->request->query['id'];
+		$result = $this-><%= modelName %>->findById($id);
+	
+		if(empty($result)) {
+			echo '[]';
+		} else {
+			echo json_encode($result['<%= modelName %>']); 	
+		} 
+	
+	}
+	
+	public function checkRule() {
+	
+		$this->autoRender = false;
+	
+		$id = $this->request->query['id'];
+		$attribute = $this->request->query['attribute'];
+		$rule = $this->request->query['rule'];
+		$value = $this->request->query['value'];
+		
+		$checkRule = $this-><%= modelName %>->checkRule($id, $attribute, $rule, $value);
+		
+		if(!$checkRule) {
+			
+			$returnValue = $this-><%= modelName %>->findById($id);
+			echo json_encode(array('status' => false, 'value' => $returnValue['<%= modelName %>'][$attribute]));
+			
+		} else {
+			echo json_encode(array('status' => true));	
+		}
+	
+	
+	}
+	
+
+}
+
+?>

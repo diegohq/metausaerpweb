@@ -1,0 +1,68 @@
+<%@ jet package="generator.html" 
+class="Create" 
+imports="metaerp.* utils.*"
+%>
+
+<% Entity entity = (Entity) argument; %>
+
+{BEFORE_ALL_CONTENT_PAGES}
+
+<?php echo $this->Session->flash(); ?>
+
+{BEFORE_TITLE}
+<%= entity.getName() %>
+{AFTER_TITLE}
+
+{BEFORE_THIS_CONTENT_PAGE}
+
+<% String entityName = StringHelper.name2system(entity.getName()); %>
+
+{BEFORE_FORM_TAG}
+<form id="<%= entityName %>Form"{FORM_TAG_EXTRA} data-metaerp-validate="true" method="post">
+
+	<% CreateBox createBox = new CreateBox(); %>
+	<%= createBox.generate(entity).replaceAll("\\{BOX_TITLE\\}", "Standard Data") %>
+	
+	<% for(Entity subEntity : entity.getSubEntity()) { %>
+	
+		<% if(subEntity.getCardinality().equals("*")) { %>
+		
+			<% if(subEntity instanceof EntityRelated) {
+				EntityRelated entityRelated = (EntityRelated) subEntity; %>
+				<a href="#" data-metaerp-subentity-add="<%= StringHelper.name2systemPlural(entityRelated.getRelated().getName()) %>"{CREATE_BUTTON_EXTRA}>Add another <%= entityRelated.getLabel().toLowerCase() %></a>
+			<% } %>
+				
+			<%= createBox.generate(subEntity).replaceAll("\\{BOX_TITLE\\}", StringHelper.name2system(subEntity.getName())) %>
+			
+			<% SubEntityN subEntityN = new SubEntityN(subEntity, true, "*"); %>
+			<%= createBox.generate(subEntityN).replaceAll("\\{BOX_TITLE\\}", StringHelper.name2system(subEntity.getName())) %>
+			
+		<% } else { 
+		
+			int quantity;
+		
+			try {
+				quantity = Integer.parseInt(subEntity.getCardinality());
+			} catch(Exception e) {
+				quantity = 1;
+			}
+		
+			for(int i = 0 ; i < quantity ; i++) {
+				SubEntityN subEntityN = new SubEntityN(subEntity, false, i + ""); %>
+				<%= createBox.generate(subEntityN).replaceAll("\\{BOX_TITLE\\}", StringHelper.name2system(subEntity.getName())) %>
+			<% }
+			
+		
+		} 
+	
+	} %>
+		
+	{BEFORE_SUBMIT_TAG}
+	<input type="submit"{SUBMIT_TAG_EXTRA} />
+	{AFTER_SUBMIT_TAG}
+	
+</form>
+{AFTER_FORM_TAG}
+
+{AFTER_THIS_CONTENT_PAGE}
+{AFTER_ALL_CONTENT_PAGES}

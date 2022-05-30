@@ -1,0 +1,5 @@
+<flashConfigs>
+	<sucessClass>alert-success</sucessClass>
+	<errorClass>alert-danger</errorClass>
+	<infoClass>alert-info</infoClass>
+</flashConfigs>
